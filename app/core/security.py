@@ -24,7 +24,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return jwt.encode(
         to_encode, 
         settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM
+        algorithm=settings.ALGORITHM,
+
     )
 
 async def verify_platform_token(token: str) -> bool:
@@ -33,7 +34,8 @@ async def verify_platform_token(token: str) -> bool:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.ALGORITHM],
+            audience=settings.RESOURCE_ID
         )
         return payload.get("platform_id") == settings.PLATFORM_ID
     except JWTError:
@@ -53,7 +55,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.ALGORITHM],
+            audience=settings.RESOURCE_ID
         )
         user_id: str = payload.get("user_id")
         if user_id is None:

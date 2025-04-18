@@ -2,61 +2,48 @@
 import cv2
 import numpy as np
 from typing import List, Dict
+from ultralytics import YOLO
 from app.core.config import settings
+import logging
 
-# 加载模型（单例模式）
-net = cv2.dnn.readNetFromONNX(settings.MODEL_PATH)
-if settings.USE_CUDA:
-    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
-def preprocess(frame: np.ndarray) -> np.ndarray:
-    """帧预处理"""
-    blob = cv2.dnn.blobFromImage(
-        frame, 
-        scalefactor=1/255.0, 
-        size=(640, 640),  # YOLOv8默认输入尺寸
-        mean=[0, 0, 0], 
-        swapRB=True, 
-        crop=False
-    )
-    return blob
+class FrameProcessor:
+    _instance = None
 
-def postprocess(outputs: np.ndarray, frame_shape: tuple) -> List[Dict]:
-    """后处理检测结果"""
-    # outputs形状: [1, 84, 8400] (YOLOv8输出格式)
-    results = []
-    for detection in outputs[0].T:
-        scores = detection[4:]
-        class_id = np.argmax(scores)
-        confidence = scores[class_id]
-        
-        if confidence > settings.CONFIDENCE_THRESHOLD:
-            # 解算边界框坐标 (cx, cy, w, h)
-            x, y, w, h = detection[0:4] * np.array([
-                frame_shape[1], frame_shape[0], 
-                frame_shape[1], frame_shape[0]
-            ])
-            results.append({
-                "class_id": int(class_id),
-                "confidence": float(confidence),
-                "bbox": [int(x-w/2), int(y-h/2), int(w), int(h)]
-            })
-    return results
+    def __init__(self):
+        self.model = YOLO(settings.MODEL_PATH)
+        if settings.USE_CUDA:
+            self.model.to('cuda')
 
-async def process_frame(frame: np.ndarray) -> List[Dict]:
-    """处理单帧图像"""
-    try:
-        # 预处理
-        blob = preprocess(frame)
-        
-        # 推理
-        net.setInput(blob)
-        outputs = net.forward()
-        
-        # 后处理
-        return postprocess(outputs, frame.shape)
-    
-    except Exception as e:
-        print(f"帧处理失败: {str(e)}")
-        return []
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    async def process_frame(self, frame: np.ndarray) -> List[Dict]:
+        """处理单帧图像并返回检测结果"""
+        try:
+            results = self.model.track(
+                frame,
+                verbose=False,
+                conf=settings.CONFIDENCE_THRESHOLD,
+                device='cuda' if settings.USE_CUDA else 'cpu'
+            )
+
+            detections = []
+            for result in results:
+                for box in result.boxes:
+                    x1, y1, x2, y2 = map(int, box.xyxy[0])
+                    detections.append({
+                        "class_id": int(box.cls),
+                        "class_name": settings.CLASS_DICT.get(str(box.cls.item()), "unknown"),
+                        "confidence": float(box.conf),
+                        "bbox": [x1, y1, x2 - x1, y2 - y1],  # x,y,w,h格式
+                        "track_id": int(box.id) if box.id is not None else None
+                    })
+            return detections
+
+        except Exception as e:
+            logging.error(f"帧处理失败: {e}")
+            return []

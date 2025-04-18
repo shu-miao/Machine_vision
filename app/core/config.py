@@ -7,14 +7,11 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "Huatai@20230208"
     ALGORITHM: str = "HS256"
     PLATFORM_ID: str = "platform-identifier" # 平台标识（按部署环境变化）
+    RESOURCE_ID : str = "ht-user"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24小时
     
-    # 视频处理配置
-    MAX_STREAMS_PER_NODE: int = 100
-    MODEL_PATH: str = "models/yolov8/best.onnx"
-    
     # 集群配置
-    REDIS_URL: str = "redis://localhost"
+    REDIS_URL: str = "redis://127.0.0.1:6379"
     
     TARGET_FPS: int = 10  # 目标处理帧率
     STREAM_TIMEOUT: int = 30  # 流超时时间(秒)
@@ -30,11 +27,11 @@ class Settings(BaseSettings):
     MAX_WORKERS: int = 50
     TASK_QUEUE_TIMEOUT: int = 60
 
-    # ... 其他配置 ...
-    MODEL_PATH = "yolov8n.pt"
-    DETECTION_THRESHOLD = 5  # 连续检测阈值
-    CONF_THRESHOLD = 0.5  # 置信度阈值
-    CLASS_DICT = {
+    # 视觉检测配置
+    MODEL_PATH: str = "yolov12n.pt"
+    DETECTION_THRESHOLD: int = 5  # 连续检测阈值
+    CONF_THRESHOLD: float = 0.5  # 置信度阈值
+    CLASS_DICT:dict = {
         "0": "fire",
         "1": "smoke",
     } # 类别列表
