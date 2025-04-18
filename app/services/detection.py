@@ -1,5 +1,4 @@
 # 检测任务调度
-# 视频检测任务调度核心
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List

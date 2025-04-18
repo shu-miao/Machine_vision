@@ -6,7 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import insert
 from app.db.session import async_session
 from app.models.schemas import DetectionResult
-import logging
+# import logging
+from app.core.config import *
 
 class ResultWriter:
     def __init__(self):

@@ -21,6 +21,7 @@ async def test_node_registry():
     status = {
         "cpu_usage": 38.5,
         "memory_usage": 1024,
+        "time": datetime.datetime.now()
     }
     await registry.update_node_status(status)
     print(f"更新节点状态: {status}")

@@ -9,10 +9,10 @@ class Settings(BaseSettings):
     PLATFORM_ID: str = "platform-identifier" # 平台标识（按部署环境变化）
     RESOURCE_ID : str = "ht-user"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24小时
-    
+
     # 集群配置
     REDIS_URL: str = "redis://127.0.0.1:6379"
-    
+
     TARGET_FPS: int = 10  # 目标处理帧率
     STREAM_TIMEOUT: int = 30  # 流超时时间(秒)
 
@@ -42,11 +42,11 @@ class Settings(BaseSettings):
     DB_NAME: str = "machine_vision"
     DB_USER: str = "root"
     DB_PASSWORD: str = ""
-
+    DEBUG: bool = True
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
-        filename='./run.log',
+        filename=r'D:\PyCharm\pycharm_project\Machine_vision\test\run.log',
         filemode='a',
         encoding='utf-8'
     )
