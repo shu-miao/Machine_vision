@@ -1,3 +1,4 @@
+'''测试节点分发'''
 import asyncio
 import logging
 from app.utils.cluster import NodeRegistry

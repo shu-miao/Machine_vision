@@ -1,6 +1,15 @@
 # 配置管理
 from pydantic_settings import BaseSettings
 import logging
+from typing import ClassVar, Dict, Any
+
+logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        filename=r'D:\PyCharm\pycharm_project\Machine_vision\test\run.log',
+        filemode='a',
+        encoding='utf-8'
+    )
 
 class Settings(BaseSettings):
     # 鉴权配置
@@ -9,6 +18,28 @@ class Settings(BaseSettings):
     PLATFORM_ID: str = "platform-identifier" # 平台标识（按部署环境变化）
     RESOURCE_ID : str = "ht-user"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24小时
+    LOGGING_CONFIG: ClassVar[Dict[str, Any]] = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "format": "%(asctime)s - %(levelname)s - %(message)s"
+            }
+        },
+        "handlers": {
+            "file": {
+                "class": "logging.FileHandler",
+                "filename": "run.log",
+                "formatter": "default",
+                "mode": "a",
+                "encoding": "utf-8"
+            }
+        },
+        "root": {
+            "handlers": ["file"],
+            "level": "INFO",
+        },
+    }
 
     # 集群配置
     REDIS_URL: str = "redis://127.0.0.1:6379"
@@ -43,15 +74,20 @@ class Settings(BaseSettings):
     DB_USER: str = "root"
     DB_PASSWORD: str = ""
     DEBUG: bool = True
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        filename=r'D:\PyCharm\pycharm_project\Machine_vision\test\run.log',
-        filemode='a',
-        encoding='utf-8'
-    )
+
+
+    _reload_flag: bool = False
 
     class Config:
         env_file = ".env"
     
+    def get_updated_config(self):
+        if self._reload_flag:
+            self.__init__()
+            self._reload_flag = False
+
 settings = Settings()
+
+def watch_config_changes():
+    # 实现环境变量监听逻辑
+    pass
