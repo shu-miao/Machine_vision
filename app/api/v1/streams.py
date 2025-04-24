@@ -1,43 +1,63 @@
-# 视频流处理
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from fastapi import Depends
+# 视频流地址
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
 from app.core.security import get_current_user
-from app.services.video_consumer import VideoStreamConsumer
 from app.utils.cluster import NodeRegistry
-import asyncio
+from app.services.video_consumer import VideoStreamConsumer
+from fastapi import HTTPException
+import logging
 
 router = APIRouter()
 
-@router.websocket("/ws/{stream_url}")
-async def video_stream_ws(
-    websocket: WebSocket,
-    stream_url: str,
-    current_user: dict = Depends(get_current_user)
+
+class StreamRequest(BaseModel):
+    stream_url: str
+    protocol: str = "rtsp"
+
+
+@router.post("/streams")
+async def create_stream(
+        request: StreamRequest,
+        # current_user: dict = Depends(get_current_user)
 ):
-    """WebSocket视频流处理端点"""
-    await websocket.accept()
+    """注册新的视频流"""
     node_registry = NodeRegistry.get_instance()
-    consumer = VideoStreamConsumer(stream_url, current_user['platform_id'])
-    
+
+    if not await node_registry.nodes:
+        raise HTTPException(status_code=503, detail="No available worker nodes")
+
+    return {
+        "stream_id": f"stream_{hash(request.stream_url)}",
+        "assigned_node": node_registry.current_node,
+        "protocol": request.protocol
+    }
+
+
+@router.websocket("/streams/{stream_id}/live")
+async def stream_monitor(
+        websocket: WebSocket,
+        stream_id: str,
+        current_user: dict = Depends(get_current_user)
+):
+    """视频流实时监控端点"""
+    await websocket.accept()
+
     try:
-        # 注册节点到集群
-        node_registry.register_node(f"stream_{stream_url}")
-        
-        # 启动消费循环
-        while True:
-            results = await consumer.consume()
-            await websocket.send_json({
-                "status": "processing",
-                "results": results[:10]  # 示例：只返回前10个结果
-            })
-            await asyncio.sleep(0.1)  # 控制推送频率
-            
+        # 获取实际流地址（需实现缓存或数据库查询）
+        stream_url = await get_stream_url(stream_id)
+
+        consumer = VideoStreamConsumer(stream_url)
+        async for frame in consumer.get_frames():
+            await websocket.send_bytes(frame.tobytes())
+
     except WebSocketDisconnect:
-        print(f"客户端断开连接: {stream_url}")
+        logging.info("Client disconnected")
     except Exception as e:
-        await websocket.send_json({
-            "status": "error",
-            "message": str(e)
-        })
-    finally:
-        await websocket.close()
+        logging.error(f"Stream error: {e}")
+        await websocket.close(code=1008)
+
+
+async def get_stream_url(stream_id: str) -> str:
+    """获取实际流地址（需完善实现）"""
+    # 这里应查询数据库或缓存获取真实地址
+    return f"rtsp://example.com/{stream_id}"

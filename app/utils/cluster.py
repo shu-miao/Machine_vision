@@ -40,7 +40,7 @@ class NodeRegistry:
         except Exception as e:
             logging.error(f"节点注销失败: {e}")
 
-    async def get_active_nodes(self) -> Set[str]:
+    async def get_active_nodes(self) -> set[str]:
         """获取所有活跃节点"""
         try:
             async with self.redis.client() as conn:
@@ -49,6 +49,11 @@ class NodeRegistry:
         except Exception as e:
             logging.error(f"获取活跃节点失败: {e}")
             return set()
+
+    @property
+    async def nodes(self) -> set[str]:
+        """异步属性，获取活跃节点集合"""
+        return await self.get_active_nodes()
 
     async def update_node_status(self, status: dict):
         """更新节点状态"""

@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.utils.cluster import NodeRegistry
 from app.api.v1 import tasks as v1_tasks
+from app.api.v1 import streams as v1_streams
 import logging
 
 @asynccontextmanager
@@ -43,6 +44,7 @@ async def add_process_time_header(request, call_next):
 
 # 包含API路由
 app.include_router(v1_tasks.router, prefix="/api/v1", tags=["Task"])
+app.include_router(v1_streams.router, prefix="/api/v1", tags=["Stream"])
 
 # 健康检查端点
 @app.get("/health")

@@ -6,7 +6,7 @@ import logging
 from ultralytics import YOLO
 import threading
 from app.core.config import settings
-
+import asyncio
 
 class VideoStream:
     def __init__(self, src,max_retries=3):
@@ -81,11 +81,23 @@ class FrameBuffer:
 class VideoStreamConsumer:
     def __init__(self, stream_url, platform_id):
         self.stream_url = stream_url
-        self.platform_id = platform_id
+        self.platform_id = platform_id # 平台ID
         self.model = YOLO(settings.MODEL_PATH)
         self.stop_event = threading.Event()
         self.boxid_set = set()
-        self.framebuffer = FrameBuffer(max_duration=30, fps=25)
+        self.framebuffer = FrameBuffer(max_duration=30, fps=30)
+
+    async def get_frames(self):
+        cap = cv2.VideoCapture(self.stream_url)
+        try:
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                yield cv2.imencode('.jpg', frame)[1]
+                await asyncio.sleep(1 / 30)  # 控制帧率
+        finally:
+            cap.release()
 
     async def consume(self):
         try:

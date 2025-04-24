@@ -2,29 +2,34 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
+import asyncio
+from urllib.parse import quote
+from sqlalchemy import text
 
-# 创建异步引擎
+# 创建异步引擎，PostgreSQL 使用 asyncpg 驱动
+password_encoded = quote(settings.DB_PASSWORD)
+
 engine = create_async_engine(
-    f"mysql+asyncmy://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}",
+    f"postgresql+asyncpg://{settings.DB_USER}:{password_encoded}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}",
     echo=settings.DEBUG,
     pool_size=20,
     max_overflow=10,
     pool_pre_ping=True,
-    pool_recycle=3600,  # MySQL连接回收时间(秒)
     connect_args={
-        "connect_timeout": 10  # 连接超时时间(秒)
+        "timeout": 10
     }
 )
+
 
 # 异步会话工厂
 AsyncSessionLocal = sessionmaker(
     bind=engine,
     class_=AsyncSession,
-    expire_on_commit=False,  # 提交后不使对象过期
-    autoflush=False,  # 禁用自动flush
-    autocommit=False,  # 禁用自动提交
-    future=True,  # 使用SQLAlchemy 2.0风格的API
-    twophase=False  # 禁用两阶段提交
+    expire_on_commit=False,
+    autoflush=False,
+    autocommit=False,
+    future=True,
+    twophase=False
 )
 
 async def async_session() -> AsyncSession:
@@ -37,3 +42,27 @@ async def async_session() -> AsyncSession:
             raise
         finally:
             await session.close()
+
+
+async def test_connection():
+    try:
+        query = text("""
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+                ORDER BY table_name
+            """)
+        async with engine.connect() as conn:
+            result = await conn.execute(query)
+            db_tables = result.scalars().all()
+            for db_table in db_tables:
+                print(db_table)
+        # print('数据库连接成功')
+    except Exception as e:
+        print(f'数据库连接失败{e}')
+    finally:
+        await engine.dispose() # 关闭连接池
+
+
+if __name__ == "__main__":
+    asyncio.run(test_connection())

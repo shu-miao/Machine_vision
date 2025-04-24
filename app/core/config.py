@@ -41,6 +41,8 @@ class Settings(BaseSettings):
         },
     }
 
+
+
     # 集群配置
     REDIS_URL: str = "redis://127.0.0.1:6379"
 
@@ -67,12 +69,13 @@ class Settings(BaseSettings):
         "1": "smoke",
     } # 类别列表
 
+    # 192.168.1.31  账号:postgres 密码:htzy@2017  库:ht_fmdata
     # 数据库配置
-    DB_HOST: str = "localhost"
-    DB_PORT: int = 3306
-    DB_NAME: str = "machine_vision"
-    DB_USER: str = "root"
-    DB_PASSWORD: str = ""
+    DB_HOST: str = "192.168.1.31"
+    DB_PORT: int = 5432
+    DB_NAME: str = "ht_fmdata"
+    DB_USER: str = "postgres"
+    DB_PASSWORD: str = "htzy@2017"
     DEBUG: bool = True
 
 
