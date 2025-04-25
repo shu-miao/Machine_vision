@@ -25,7 +25,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         to_encode, 
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
-
     )
 
 async def verify_platform_token(token: str) -> bool:
@@ -37,7 +36,10 @@ async def verify_platform_token(token: str) -> bool:
             algorithms=[settings.ALGORITHM],
             audience=settings.RESOURCE_ID
         )
-        return payload.get("platform_id") == settings.PLATFORM_ID
+        if payload is not None:
+            return True
+        else:
+            return False
     except JWTError:
         return False
 
@@ -45,7 +47,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     """获取当前认证用户"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="无效的认证凭证",
+        detail="认证失败",
         headers={"WWW-Authenticate": "Bearer"},
     )
     if not await verify_platform_token(token):

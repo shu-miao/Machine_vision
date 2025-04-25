@@ -46,17 +46,24 @@ async def async_session() -> AsyncSession:
 
 async def test_connection():
     try:
-        query = text("""
-                SELECT table_name
-                FROM information_schema.tables
-                WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
-                ORDER BY table_name
-            """)
+        query = text(
+            """
+                SELECT * FROM ht_facility_ptz;
+            """
+        )
         async with engine.connect() as conn:
             result = await conn.execute(query)
-            db_tables = result.scalars().all()
-            for db_table in db_tables:
-                print(db_table)
+            rows = result.fetchall()
+            # 打印列名
+            columns = result.keys()
+            print("列名:", columns, '\n')
+
+            # 逐行打印
+            for row in rows:
+                # row是类似元组的结构，可以用索引或列名访问
+                row_dict = dict(zip(columns, row))
+                print(row_dict)
+
         # print('数据库连接成功')
     except Exception as e:
         print(f'数据库连接失败{e}')

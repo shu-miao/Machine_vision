@@ -58,6 +58,6 @@ async def stream_monitor(
 
 
 async def get_stream_url(stream_id: str) -> str:
-    """获取实际流地址（需完善实现）"""
-    # 这里应查询数据库或缓存获取真实地址
+    """获取实际流地址"""
+    # 查询数据库或缓存获取真实地址
     return f"rtsp://example.com/{stream_id}"

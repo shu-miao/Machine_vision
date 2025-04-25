@@ -41,8 +41,6 @@ class Settings(BaseSettings):
         },
     }
 
-
-
     # 集群配置
     REDIS_URL: str = "redis://127.0.0.1:6379"
 
@@ -64,7 +62,7 @@ class Settings(BaseSettings):
     MODEL_PATH: str = "yolov12n.pt"
     DETECTION_THRESHOLD: int = 5  # 连续检测阈值
     CONF_THRESHOLD: float = 0.5  # 置信度阈值
-    CLASS_DICT:dict = {
+    CLASS_DICT: dict = {
         "0": "fire",
         "1": "smoke",
     } # 类别列表
