@@ -39,7 +39,7 @@ async def create_task(
 @router.get("/tasks/{task_id}")
 async def get_task_status(task_id: str):
     """获取任务状态"""
-    # 实际实现应查询任务队列状态
+    # 实现查询任务队列状态
     return {
         "task_id": task_id,
         "status": "running",

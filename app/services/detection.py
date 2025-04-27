@@ -54,7 +54,7 @@ class TaskDispatcher:
             # 优先处理高优先级任务
             task = await self.redis.lpop(self.priority_queue) or \
                    await self.redis.lpop(self.task_queue)
-            
+
             if not task:
                 await asyncio.sleep(1)
                 continue

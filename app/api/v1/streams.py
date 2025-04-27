@@ -24,7 +24,7 @@ async def create_stream(
     node_registry = NodeRegistry.get_instance()
 
     if not await node_registry.nodes:
-        raise HTTPException(status_code=503, detail="No available worker nodes")
+        raise HTTPException(status_code=503, detail="没有可用的工作节点")
 
     return {
         "stream_id": f"stream_{hash(request.stream_url)}",

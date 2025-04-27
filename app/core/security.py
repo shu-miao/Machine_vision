@@ -12,9 +12,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 class TokenData(BaseModel):
     """令牌数据结构"""
-    user_id: str
-    platform_id: str
-    exp: datetime
+    user_id: str # 用户id
+    platform_id: str # 平台id
+    exp: datetime # 时间
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """生成JWT令牌"""
@@ -36,6 +36,8 @@ async def verify_platform_token(token: str) -> bool:
             algorithms=[settings.ALGORITHM],
             audience=settings.RESOURCE_ID
         )
+
+        # 只要能解码就放行
         if payload is not None:
             return True
         else:
