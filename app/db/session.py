@@ -10,7 +10,7 @@ from sqlalchemy import text
 password_encoded = quote(settings.DB_PASSWORD)
 
 engine = create_async_engine(
-    f"postgresql+asyncpg://{settings.DB_USER}:{password_encoded}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}",
+    f"postgresql+asyncpg://{settings.DB_USER}:{password_encoded}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NA+ME}",
     echo=settings.DEBUG,
     pool_size=20,
     max_overflow=10,

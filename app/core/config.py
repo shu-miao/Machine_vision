@@ -29,7 +29,7 @@ class Settings(BaseSettings):
         "handlers": {
             "file": {
                 "class": "logging.FileHandler",
-                "filename": "run.log",
+                "filename": r'D:\PyCharm\pycharm_project\Machine_vision\test\run.log',
                 "formatter": "default",
                 "mode": "a",
                 "encoding": "utf-8"
